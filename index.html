@@ -1,1 +1,1033 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>個人 Dashboard</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      --radius: 16px;
+    }
 
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button, input, textarea, select { font: inherit; }
+
+    button {
+      cursor: pointer;
+      border: 0;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 230px;
+      background: #fff;
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 10;
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 800;
+      padding: 8px 12px 28px;
+    }
+
+    .brand span { color: var(--primary); }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: transparent;
+      color: #4b5563;
+      transition: 0.2s;
+    }
+
+    .nav-btn:hover { background: #f8fafc; }
+
+    .nav-btn.active {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .main {
+      margin-left: 230px;
+      width: calc(100% - 230px);
+      padding: 32px;
+    }
+
+    .page {
+      display: none;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .page.active { display: block; }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+
+    .page-header p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .btn {
+      padding: 11px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      transition: 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover { filter: brightness(0.95); }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-danger {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card, .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card {
+      padding: 20px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1.9fr;
+      gap: 20px;
+    }
+
+    .card { padding: 22px; }
+
+    .card h2 {
+      font-size: 18px;
+      margin: 0 0 18px;
+    }
+
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .progress {
+      height: 12px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: var(--primary);
+      border-radius: inherit;
+      transition: width 0.25s;
+    }
+
+    .progress-number {
+      min-width: 48px;
+      text-align: right;
+      font-weight: 800;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .task-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .task-card.completed { opacity: 0.72; }
+
+    .task-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .task-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin: 0 0 6px;
+      word-break: break-word;
+    }
+
+    .task-description {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .priority-high { background: #fee2e2; color: #b91c1c; }
+    .priority-medium { background: #fef3c7; color: #b45309; }
+    .priority-low { background: #dcfce7; color: #15803d; }
+
+    .status-complete { background: var(--success-light); color: var(--success); }
+    .status-pending { background: #f3f4f6; color: #4b5563; }
+
+    .task-progress {
+      margin-top: 14px;
+    }
+
+    .task-progress-head {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .task-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .small-btn {
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .small-btn.complete {
+      background: var(--success-light);
+      color: var(--success);
+    }
+
+    .small-btn.delete {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 34px 16px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+    }
+
+    .form-card {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 11px 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .field textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .range-row input { flex: 1; }
+
+    .range-value {
+      width: 52px;
+      text-align: right;
+      font-weight: 800;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .reminder-section {
+      margin-bottom: 24px;
+    }
+
+    .reminder-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .reminder-title.overdue { color: var(--danger); }
+    .reminder-title.today { color: var(--warning); }
+    .reminder-title.upcoming { color: #ca8a04; }
+
+    .notice {
+      margin-bottom: 20px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .notice.show { display: block; }
+    .notice.success { background: var(--success-light); color: #166534; }
+    .notice.error { background: var(--danger-light); color: #991b1b; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.show { display: flex; }
+
+    .modal {
+      width: min(600px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .modal-header h2 { margin: 0; }
+
+    .close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #f3f4f6;
+      color: #4b5563;
+      font-size: 20px;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 28px;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        width: 190px;
+      }
+      .main {
+        margin-left: 190px;
+        width: calc(100% - 190px);
+        padding: 24px;
+      }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 650px) {
+      .app { display: block; }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        padding: 10px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255,255,255,0.96);
+      }
+      .brand {
+        padding: 5px 8px 10px;
+      }
+      .nav {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .nav-btn {
+        text-align: center;
+        padding: 9px 5px;
+        font-size: 13px;
+      }
+      .main {
+        margin-left: 0;
+        width: 100%;
+        padding: 18px 14px;
+      }
+      .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .page-header h1 { font-size: 24px; }
+      .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .stat-card { padding: 14px; }
+      .stat-value { font-size: 24px; }
+      .card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">My <span>Dashboard</span></div>
+      <nav class="nav">
+        <button class="nav-btn active" data-page="dashboard">🏠 Dashboard</button>
+        <button class="nav-btn" data-page="tasks">📝 待辦事項</button>
+        <button class="nav-btn" data-page="reminders">🔔 提醒</button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div id="notice" class="notice"></div>
+
+      <section id="dashboard" class="page active">
+        <div class="page-header">
+          <div>
+            <h1>Dashboard</h1>
+            <p>快速查看目前的待辦事項與完成進度。</p>
+          </div>
+          <button class="btn btn-primary" id="quickAddBtn">＋ 新增待辦事項</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-label">全部待辦</div>
+            <div class="stat-value" id="totalCount">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">已完成</div>
+            <div class="stat-value" id="completedCount">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">未完成</div>
+            <div class="stat-value" id="pendingCount">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">完成率</div>
+            <div class="stat-value" id="completionRate">0%</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="card">
+            <h2>整體完成進度</h2>
+            <div class="progress-wrap">
+              <div class="progress">
+                <div class="progress-bar" id="overallProgressBar"></div>
+              </div>
+              <div class="progress-number" id="overallProgressText">0%</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>待辦事項預覽</h2>
+            <div id="dashboardTaskList" class="task-list"></div>
+          </div>
+        </div>
+
+        <div class="footer-note">資料會儲存在此瀏覽器的 LocalStorage。</div>
+      </section>
+
+      <section id="tasks" class="page">
+        <div class="page-header">
+          <div>
+            <h1>待辦事項</h1>
+            <p>新增、編輯、完成或刪除你的待辦事項。</p>
+          </div>
+          <button class="btn btn-primary" id="addTaskBtn">＋ 新增待辦事項</button>
+        </div>
+        <div id="taskList" class="task-list"></div>
+      </section>
+
+      <section id="reminders" class="page">
+        <div class="page-header">
+          <div>
+            <h1>提醒</h1>
+            <p>查看已逾期、今天到期與即將到期的待辦事項。</p>
+          </div>
+        </div>
+
+        <div class="reminder-section">
+          <h2 class="reminder-title overdue">🔴 已逾期</h2>
+          <div id="overdueList" class="task-list"></div>
+        </div>
+
+        <div class="reminder-section">
+          <h2 class="reminder-title today">🟠 今天到期</h2>
+          <div id="todayList" class="task-list"></div>
+        </div>
+
+        <div class="reminder-section">
+          <h2 class="reminder-title upcoming">🟡 即將到期</h2>
+          <div id="upcomingList" class="task-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 id="modalTitle">新增待辦事項</h2>
+        <button class="close-btn" id="closeModalBtn" aria-label="關閉">×</button>
+      </div>
+
+      <form id="taskForm" class="form-grid">
+        <div class="field">
+          <label for="taskTitle">事項名稱 *</label>
+          <input id="taskTitle" type="text" maxlength="100" placeholder="例如：完成 Web App 作業" required />
+        </div>
+
+        <div class="field">
+          <label for="taskDescription">事項說明</label>
+          <textarea id="taskDescription" maxlength="500" placeholder="輸入這項工作的詳細內容"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="taskDueDate">截止日期 *</label>
+          <input id="taskDueDate" type="date" required />
+        </div>
+
+        <div class="field">
+          <label for="taskPriority">優先程度</label>
+          <select id="taskPriority">
+            <option value="high">高</option>
+            <option value="medium" selected>中</option>
+            <option value="low">低</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="taskProgress">完成進度</label>
+          <div class="range-row">
+            <input id="taskProgress" type="range" min="0" max="100" step="1" value="0" />
+            <div class="range-value" id="rangeValue">0%</div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="cancelModalBtn">取消</button>
+          <button type="submit" class="btn btn-primary" id="saveTaskBtn">新增</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "personal_dashboard_tasks_v1";
+    let tasks = loadTasks();
+    let editingId = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    function loadTasks() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const data = JSON.parse(raw);
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("讀取 LocalStorage 失敗：", error);
+        return [];
+      }
+    }
+
+    function saveTasks() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      } catch (error) {
+        console.error("儲存 LocalStorage 失敗：", error);
+        showNotice("資料儲存失敗，請確認瀏覽器是否允許 LocalStorage。", "error");
+      }
+    }
+
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+
+    function showNotice(message, type = "success") {
+      const notice = $("notice");
+      notice.textContent = message;
+      notice.className = `notice show ${type}`;
+      clearTimeout(showNotice.timer);
+      showNotice.timer = setTimeout(() => {
+        notice.className = "notice";
+      }, 2200);
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return "未設定";
+      const date = new Date(dateString + "T00:00:00");
+      if (Number.isNaN(date.getTime())) return dateString;
+      return date.toLocaleDateString("zh-TW", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      });
+    }
+
+    function localTodayString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function priorityText(priority) {
+      return {
+        high: "高",
+        medium: "中",
+        low: "低"
+      }[priority] || "中";
+    }
+
+    function priorityClass(priority) {
+      return {
+        high: "priority-high",
+        medium: "priority-medium",
+        low: "priority-low"
+      }[priority] || "priority-medium";
+    }
+
+    function getSortedTasks(list) {
+      return [...list].sort((a, b) => {
+        if (Boolean(a.completed) !== Boolean(b.completed)) {
+          return a.completed ? 1 : -1;
+        }
+        const dateA = a.dueDate || "9999-12-31";
+        const dateB = b.dueDate || "9999-12-31";
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
+
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        return (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1);
+      });
+    }
+
+    function taskHTML(task, showActions = true) {
+      const progress = Math.max(0, Math.min(100, Number(task.progress) || 0));
+      const completed = Boolean(task.completed);
+
+      return `
+        <article class="task-card ${completed ? "completed" : ""}">
+          <div class="task-top">
+            <div>
+              <h3 class="task-title">${escapeHTML(task.title)}</h3>
+              ${task.description ? `<p class="task-description">${escapeHTML(task.description)}</p>` : ""}
+            </div>
+            <span class="tag ${completed ? "status-complete" : "status-pending"}">
+              ${completed ? "已完成" : "未完成"}
+            </span>
+          </div>
+
+          <div class="task-meta">
+            <span class="tag ${priorityClass(task.priority)}">優先：${priorityText(task.priority)}</span>
+            <span class="tag status-pending">截止：${formatDate(task.dueDate)}</span>
+          </div>
+
+          <div class="task-progress">
+            <div class="task-progress-head">
+              <span>完成進度</span>
+              <strong>${progress}%</strong>
+            </div>
+            <div class="progress">
+              <div class="progress-bar" style="width:${progress}%"></div>
+            </div>
+          </div>
+
+          ${showActions ? `
+            <div class="task-actions">
+              ${!completed
+                ? `<button class="small-btn complete" data-action="complete" data-id="${task.id}">✓ 標記完成</button>`
+                : `<button class="small-btn" data-action="reopen" data-id="${task.id}">↩ 重新開啟</button>`}
+              <button class="small-btn" data-action="edit" data-id="${task.id}">編輯</button>
+              <button class="small-btn delete" data-action="delete" data-id="${task.id}">刪除</button>
+            </div>
+          ` : ""}
+        </article>
+      `;
+    }
+
+    function emptyHTML(message = "目前沒有待辦事項") {
+      return `<div class="empty">${message}</div>`;
+    }
+
+    function renderDashboard() {
+      const total = tasks.length;
+      const completed = tasks.filter(task => task.completed).length;
+      const pending = total - completed;
+      const rate = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+      $("totalCount").textContent = total;
+      $("completedCount").textContent = completed;
+      $("pendingCount").textContent = pending;
+      $("completionRate").textContent = `${rate}%`;
+      $("overallProgressBar").style.width = `${rate}%`;
+      $("overallProgressText").textContent = `${rate}%`;
+
+      const preview = getSortedTasks(tasks).slice(0, 5);
+      $("dashboardTaskList").innerHTML = preview.length
+        ? preview.map(task => taskHTML(task, true)).join("")
+        : emptyHTML();
+    }
+
+    function renderTasks() {
+      const list = getSortedTasks(tasks);
+      $("taskList").innerHTML = list.length
+        ? list.map(task => taskHTML(task, true)).join("")
+        : emptyHTML("目前沒有待辦事項，先新增一個吧！");
+    }
+
+    function renderReminders() {
+      const today = localTodayString();
+      const pending = tasks.filter(task => !task.completed && task.dueDate);
+
+      const overdue = pending
+        .filter(task => task.dueDate < today)
+        .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+
+      const todayTasks = pending
+        .filter(task => task.dueDate === today)
+        .sort((a, b) => (a.priority || "").localeCompare(b.priority || ""));
+
+      const upcoming = pending
+        .filter(task => task.dueDate > today)
+        .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+        .slice(0, 10);
+
+      $("overdueList").innerHTML = overdue.length
+        ? overdue.map(task => taskHTML(task, true)).join("")
+        : emptyHTML("目前沒有已逾期的事項。");
+
+      $("todayList").innerHTML = todayTasks.length
+        ? todayTasks.map(task => taskHTML(task, true)).join("")
+        : emptyHTML("今天沒有到期的事項。");
+
+      $("upcomingList").innerHTML = upcoming.length
+        ? upcoming.map(task => taskHTML(task, true)).join("")
+        : emptyHTML("目前沒有即將到期的事項。");
+    }
+
+    function renderAll() {
+      renderDashboard();
+      renderTasks();
+      renderReminders();
+    }
+
+    function switchPage(pageId) {
+      document.querySelectorAll(".page").forEach(page => {
+        page.classList.toggle("active", page.id === pageId);
+      });
+
+      document.querySelectorAll(".nav-btn").forEach(button => {
+        button.classList.toggle("active", button.dataset.page === pageId);
+      });
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function openModal(task = null) {
+      editingId = task ? task.id : null;
+      $("modalTitle").textContent = task ? "編輯待辦事項" : "新增待辦事項";
+      $("saveTaskBtn").textContent = task ? "儲存修改" : "新增";
+
+      $("taskTitle").value = task?.title || "";
+      $("taskDescription").value = task?.description || "";
+      $("taskDueDate").value = task?.dueDate || "";
+      $("taskPriority").value = task?.priority || "medium";
+      $("taskProgress").value = task?.progress ?? 0;
+      $("rangeValue").textContent = `${task?.progress ?? 0}%`;
+
+      $("modalBackdrop").classList.add("show");
+      setTimeout(() => $("taskTitle").focus(), 50);
+    }
+
+    function closeModal() {
+      $("modalBackdrop").classList.remove("show");
+      editingId = null;
+      $("taskForm").reset();
+      $("taskPriority").value = "medium";
+      $("taskProgress").value = 0;
+      $("rangeValue").textContent = "0%";
+    }
+
+    function handleFormSubmit(event) {
+      event.preventDefault();
+
+      const title = $("taskTitle").value.trim();
+      if (!title) {
+        showNotice("請輸入事項名稱。", "error");
+        $("taskTitle").focus();
+        return;
+      }
+
+      const progress = Number($("taskProgress").value);
+      const data = {
+        title,
+        description: $("taskDescription").value.trim(),
+        dueDate: $("taskDueDate").value,
+        priority: $("taskPriority").value,
+        progress,
+        completed: progress === 100
+      };
+
+      if (editingId) {
+        const index = tasks.findIndex(task => task.id === editingId);
+        if (index !== -1) {
+          tasks[index] = {
+            ...tasks[index],
+            ...data
+          };
+        }
+        showNotice("待辦事項已更新。");
+      } else {
+        tasks.push({
+          id: generateId(),
+          createdAt: new Date().toISOString(),
+          ...data
+        });
+        showNotice("待辦事項已新增。");
+      }
+
+      saveTasks();
+      renderAll();
+      closeModal();
+    }
+
+    function completeTask(id) {
+      const task = tasks.find(item => item.id === id);
+      if (!task) return;
+
+      task.progress = 100;
+      task.completed = true;
+      saveTasks();
+      renderAll();
+      showNotice("已完成待辦事項。");
+    }
+
+    function reopenTask(id) {
+      const task = tasks.find(item => item.id === id);
+      if (!task) return;
+
+      task.completed = false;
+      task.progress = Math.min(Number(task.progress) || 0, 99);
+      saveTasks();
+      renderAll();
+      showNotice("已重新開啟待辦事項。");
+    }
+
+    function deleteTask(id) {
+      const task = tasks.find(item => item.id === id);
+      if (!task) return;
+
+      const confirmed = window.confirm(`確定要刪除「${task.title}」嗎？`);
+      if (!confirmed) return;
+
+      tasks = tasks.filter(item => item.id !== id);
+      saveTasks();
+      renderAll();
+      showNotice("待辦事項已刪除。");
+    }
+
+    function handleTaskAction(event) {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+
+      const id = button.dataset.id;
+      const action = button.dataset.action;
+      const task = tasks.find(item => item.id === id);
+
+      if (action === "complete") completeTask(id);
+      if (action === "reopen") reopenTask(id);
+      if (action === "delete") deleteTask(id);
+      if (action === "edit" && task) openModal(task);
+    }
+
+    document.querySelectorAll(".nav-btn").forEach(button => {
+      button.addEventListener("click", () => switchPage(button.dataset.page));
+    });
+
+    $("quickAddBtn").addEventListener("click", () => {
+      switchPage("tasks");
+      openModal();
+    });
+
+    $("addTaskBtn").addEventListener("click", () => openModal());
+    $("closeModalBtn").addEventListener("click", closeModal);
+    $("cancelModalBtn").addEventListener("click", closeModal);
+    $("taskForm").addEventListener("submit", handleFormSubmit);
+
+    $("taskProgress").addEventListener("input", () => {
+      $("rangeValue").textContent = `${$("taskProgress").value}%`;
+    });
+
+    $("modalBackdrop").addEventListener("click", (event) => {
+      if (event.target === $("modalBackdrop")) closeModal();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && $("modalBackdrop").classList.contains("show")) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (event.target.closest("[data-action]")) {
+        handleTaskAction(event);
+      }
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
